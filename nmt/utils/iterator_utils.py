@@ -91,7 +91,8 @@ def get_iterator(src_dataset,
                  skip_count=None,
                  num_shards=1,
                  shard_index=0,
-                 reshuffle_each_iteration=True):
+                 reshuffle_each_iteration=True,
+                 select_end_tokens = True):
   if not output_buffer_size:
     output_buffer_size = batch_size * 1000
   src_eos_id = tf.cast(src_vocab_table.lookup(tf.constant(eos)), tf.int32)
@@ -117,7 +118,13 @@ def get_iterator(src_dataset,
       lambda src, tgt: tf.logical_and(tf.size(src) > 0, tf.size(tgt) > 0))
 
   if src_max_len:
-    src_tgt_dataset = src_tgt_dataset.map(
+    #Select end of list
+    if select_end_tokens:
+      src_tgt_dataset = src_tgt_dataset.map(
+          lambda src, tgt: (src[-src_max_len:], tgt),
+          num_parallel_calls=num_parallel_calls).prefetch(output_buffer_size)
+    else:
+      src_tgt_dataset = src_tgt_dataset.map(
         lambda src, tgt: (src[:src_max_len], tgt),
         num_parallel_calls=num_parallel_calls).prefetch(output_buffer_size)
   if tgt_max_len:
