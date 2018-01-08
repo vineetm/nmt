@@ -42,6 +42,10 @@ def evaluate(ref_file, trans_file, metric, subword_option=None):
     evaluation_score = _accuracy(ref_file, trans_file)
   elif metric.lower() == "word_accuracy":
     evaluation_score = _word_accuracy(ref_file, trans_file)
+  elif metric.lower() == "word_recall":
+    evaluation_score = _word_recall(ref_file, trans_file)
+  elif metric.lower() == "word_precision":
+    evaluation_score = _word_precision(ref_file, trans_file)
   else:
     raise ValueError("Unknown metric %s" % metric)
 
@@ -128,6 +132,32 @@ def _accuracy(label_file, pred_file):
           match += 1
         count += 1
   return 100 * match / count
+
+
+def _word_recall(label_file, pred_file):
+  with codecs.getreader("utf-8")(tf.gfile.GFile(label_file, "r")) as label_fh:
+    with codecs.getreader("utf-8")(tf.gfile.GFile(pred_file, "r")) as pred_fh:
+
+  found, total = 0., 0.
+  for preds, gt in zip(open(pred_file), open(label_file)):
+    gt_words = set(gt.strip().split())
+    pred_words = set(preds.strip().split())
+    total += len(gt_words)
+    found += len(gt_words.intersection(pred_words))
+  return found / total
+
+
+def _word_precision(label_file, pred_file):
+  with codecs.getreader("utf-8")(tf.gfile.GFile(label_file, "r")) as label_fh:
+    with codecs.getreader("utf-8")(tf.gfile.GFile(pred_file, "r")) as pred_fh:
+
+  found, total = 0., 0.
+  for preds, gt in zip(open(pred_file), open(label_file)):
+    gt_words = set(gt.strip().split())
+    pred_words = set(preds.strip().split())
+    total += len(pred_words)
+    found += len(gt_words.intersection(pred_words))
+  return found / total
 
 
 def _word_accuracy(label_file, pred_file):
