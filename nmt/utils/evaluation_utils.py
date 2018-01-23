@@ -135,29 +135,30 @@ def _accuracy(label_file, pred_file):
 
 
 def _word_recall(label_file, pred_file):
-  with codecs.getreader("utf-8")(tf.gfile.GFile(label_file, "r")) as label_fh:
-    with codecs.getreader("utf-8")(tf.gfile.GFile(pred_file, "r")) as pred_fh:
-
   found, total = 0., 0.
-  for preds, gt in zip(open(pred_file), open(label_file)):
-    gt_words = set(gt.strip().split())
-    pred_words = set(preds.strip().split())
-    total += len(gt_words)
-    found += len(gt_words.intersection(pred_words))
+  with codecs.getreader("utf-8")(tf.gfile.GFile(label_file, "rb")) as label_fh:
+    with codecs.getreader("utf-8")(tf.gfile.GFile(pred_file, "rb")) as pred_fh:
+      for preds, gt in zip(pred_fh, label_fh):
+        gt_words = set(gt.strip().split())
+        pred_words = set(preds.strip().split())
+        total += len(gt_words)
+        found += len(gt_words.intersection(pred_words))
   return found / total
 
 
 def _word_precision(label_file, pred_file):
-  with codecs.getreader("utf-8")(tf.gfile.GFile(label_file, "r")) as label_fh:
-    with codecs.getreader("utf-8")(tf.gfile.GFile(pred_file, "r")) as pred_fh:
-
   found, total = 0., 0.
-  for preds, gt in zip(open(pred_file), open(label_file)):
-    gt_words = set(gt.strip().split())
-    pred_words = set(preds.strip().split())
-    total += len(pred_words)
-    found += len(gt_words.intersection(pred_words))
-  return found / total
+  with codecs.getreader("utf-8")(tf.gfile.GFile(label_file, "rb")) as label_fh:
+    with codecs.getreader("utf-8")(tf.gfile.GFile(pred_file, "rb")) as pred_fh:
+      for preds, gt in zip(pred_fh, label_fh):
+        gt_words = set(gt.strip().split())
+        pred_words = set(preds.strip().split())
+        total += len(pred_words)
+        found += len(gt_words.intersection(pred_words))
+  if total:
+    return found / total
+  else:
+    return 0.0
 
 
 def _word_accuracy(label_file, pred_file):
